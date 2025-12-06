@@ -5,14 +5,14 @@ use std::cell::RefCell;
 
 ///////////////////////////////////////////////////////////////////
 
-fn transpose<T>(mut rows: Vec<Vec<T>>) -> Vec<Vec<T>> {
+fn transpose<T>(rows: Vec<Vec<T>>) -> Vec<Vec<T>> {
     if rows.len() == 0 {
         return rows;
     }
 
-    let subsequent_rows: Vec<Vec<T>> = rows.drain(1..).collect();
-    let seed: Vec<Vec<T>> = rows.pop().unwrap().into_iter().map(|x: T| -> Vec<T> { vec![x] }).collect();
-    subsequent_rows.into_iter().fold(seed, |transposed: Vec<Vec<T>>, row: Vec<T>| -> Vec<Vec<T>> { zip(transposed.into_iter(), row.into_iter()).map(|(mut xs, x) : (Vec<T>, T)| -> Vec<T> { xs.push(x); xs }).collect() })
+    let mut rows_it = rows.into_iter();
+    let seed: Vec<Vec<T>> = rows_it.next().unwrap().into_iter().map(|x: T| -> Vec<T> { vec![x] }).collect();
+    rows_it.fold(seed, |transposed: Vec<Vec<T>>, row: Vec<T>| -> Vec<Vec<T>> { zip(transposed.into_iter(), row.into_iter()).map(|(mut xs, x) : (Vec<T>, T)| -> Vec<T> { xs.push(x); xs }).collect() })
 }
 
 ///////////////////////////////////////////////////////////////////
