@@ -1,4 +1,6 @@
 use std::fs;
+use std::iter::zip;
+use std::cmp::min;
 
 #[derive(Debug)]
 struct Machine {
@@ -64,16 +66,35 @@ fn jolt_machine_in_steps(steps: u16, start: Vec<u16>, goal: &Vec<u16>, toggles: 
     if start == *goal {
         return Some(steps);
     }
-    (0..toggles.len()).flat_map(|ti| {
-        let mut new = start.clone();
+
+    let error: Vec<u16> = zip(goal, &start).map(|(g, s)| g - *s).collect();
+    let mut max_progress_and_toggle_index: Vec<(_, usize)> = (0..toggles.len()).map(|ti| {
+        let mut max_clicks = 0xffffu16;
+        let mut wires = 0;
         let mut i = 0;
         let mut t = toggles[ti];
+        while t > 0u16 {
+            if t & 1 == 1 {
+                max_clicks = min(max_clicks, error[i]);
+                wires += 1;
+            }
+            t = t >> 1;
+            i += 1;
+        }
+        ((max_clicks, 0xffffu16 - wires), ti)
+    }).collect();
+    max_progress_and_toggle_index.sort();
+
+    max_progress_and_toggle_index.iter().flat_map(|(_, ti)| {
+        let mut new = start.clone();
+        let mut i = 0;
+        let mut t = toggles[*ti];
         while t > 0u16 {
             new[i] += t & 1;
             t = t >> 1;
             i += 1;
         }
-        jolt_machine_in_steps(steps+1, new, goal, &toggles[ti..])
+        jolt_machine_in_steps(steps+1, new, goal, &toggles[*ti..])
     }).next()
 }
 
